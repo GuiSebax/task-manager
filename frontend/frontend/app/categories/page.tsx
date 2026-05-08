@@ -10,6 +10,11 @@ import {
 } from "@/lib/categories";
 import type { Category } from "@/lib/types";
 import Navbar from "@/components/Navbar";
+import { Plus, Trash2, Tag } from "lucide-react";
+
+const inputClass =
+  "bg-[var(--background)] border border-[var(--card-border)] rounded-lg px-3 py-2 text-sm text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] placeholder:text-[var(--muted)]";
+const labelClass = "text-sm font-medium text-[var(--muted)]";
 
 export default function CategoriesPage() {
   const { isLoaded, isSignedIn } = useAuth();
@@ -24,9 +29,7 @@ export default function CategoriesPage() {
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
-    if (isLoaded && !isSignedIn) {
-      router.push("/sign-in");
-    }
+    if (isLoaded && !isSignedIn) router.push("/sign-in");
   }, [isLoaded, isSignedIn]);
 
   async function fetchCategories() {
@@ -72,95 +75,126 @@ export default function CategoriesPage() {
 
   if (!isLoaded || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+      <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-6 h-6 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
+          <p className="text-[var(--muted)] text-sm">Loading categories...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+    <div className="min-h-screen bg-[var(--background)]">
       <Navbar />
 
       <main className="max-w-xl mx-auto px-6 py-8 flex flex-col gap-6">
-        {/* Create category form */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-gray-900 mb-4">
-            New Category
+        {/* Page header */}
+        <div>
+          <h2 className="text-2xl font-bold text-[var(--foreground)]">
+            Categories
           </h2>
+          <p className="text-[var(--muted)] text-sm mt-1">
+            Organize your tasks with categories
+          </p>
+        </div>
+
+        {/* Create category form */}
+        <div className="bg-[var(--card)] border border-[var(--card-border)] rounded-xl p-6 shadow-sm">
+          <h3 className="text-sm font-semibold text-[var(--foreground)] mb-4">
+            New Category
+          </h3>
 
           <form onSubmit={handleCreate} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-gray-700">
-                Name *
-              </label>
+            <div className="flex flex-col gap-1.5">
+              <label className={labelClass}>Name *</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Work, Personal, Study"
                 required
-                className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className={inputClass}
               />
             </div>
 
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-gray-700">Color</label>
+            <div className="flex flex-col gap-1.5">
+              <label className={labelClass}>Color</label>
               <div className="flex items-center gap-3">
                 <input
                   type="color"
                   value={color}
                   onChange={(e) => setColor(e.target.value)}
-                  className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer"
+                  className="w-10 h-10 rounded-lg border border-[var(--card-border)] cursor-pointer bg-transparent"
                 />
-                <span className="text-sm text-gray-500">{color}</span>
+                <span className="text-sm text-[var(--muted)] font-mono">
+                  {color}
+                </span>
+                <div
+                  className="w-6 h-6 rounded-full border border-[var(--card-border)]"
+                  style={{ backgroundColor: color }}
+                />
               </div>
             </div>
 
-            {error && <p className="text-red-500 text-sm">{error}</p>}
+            {error && (
+              <p className="text-red-400 text-sm bg-red-400/10 px-3 py-2 rounded-lg">
+                {error}
+              </p>
+            )}
 
             <button
               type="submit"
               disabled={creating}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50"
+              className="flex items-center justify-center gap-2 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
             >
+              <Plus size={16} />
               {creating ? "Creating..." : "Create Category"}
             </button>
           </form>
         </div>
 
         {/* Categories list */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-gray-900 mb-4">
+        <div className="bg-[var(--card)] border border-[var(--card-border)] rounded-xl p-6 shadow-sm">
+          <h3 className="text-sm font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
+            <Tag size={14} className="text-[var(--muted)]" />
             Your Categories
-          </h2>
+            <span className="ml-auto text-xs text-[var(--muted)] font-normal">
+              {categories.length} total
+            </span>
+          </h3>
 
           {categories.length === 0 ? (
-            <p className="text-gray-400 text-sm text-center py-6">
-              No categories yet!
-            </p>
+            <div className="text-center py-8">
+              <p className="text-[var(--muted)] text-sm">No categories yet!</p>
+              <p className="text-[var(--muted)] text-xs mt-1">
+                Create one above to get started
+              </p>
+            </div>
           ) : (
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2">
               {categories.map((cat) => (
                 <div
                   key={cat.id}
-                  className="flex items-center justify-between p-3 rounded-lg border border-gray-100"
+                  className="group flex items-center justify-between p-3 rounded-lg border border-[var(--card-border)] hover:border-[var(--primary)] transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className="w-4 h-4 rounded-full"
+                      className="w-4 h-4 rounded-full shrink-0"
                       style={{ backgroundColor: cat.color }}
                     />
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-sm font-medium text-[var(--foreground)]">
                       {cat.name}
+                    </span>
+                    <span className="text-xs font-mono text-[var(--muted)]">
+                      {cat.color}
                     </span>
                   </div>
                   <button
                     onClick={() => handleDelete(cat.id)}
-                    className="text-gray-400 hover:text-red-500 transition-colors text-xs"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-md text-[var(--muted)] hover:text-red-400 hover:bg-red-400/10"
                   >
-                    ✕
+                    <Trash2 size={14} />
                   </button>
                 </div>
               ))}

@@ -1,27 +1,26 @@
 import type { Task } from "@/lib/types";
 import { updateTask, deleteTask } from "@/lib/tasks";
+import { Trash2, Calendar, Tag } from "lucide-react";
 
 interface TaskCardProps {
   task: Task;
   onUpdate: () => void;
 }
 
-const priorityColors = {
-  low: "bg-green-100 text-green-700",
-  medium: "bg-yellow-100 text-yellow-700",
-  high: "bg-red-100 text-red-700",
+const priorityConfig = {
+  low: { color: "text-emerald-400", bg: "bg-emerald-400/10", label: "Low" },
+  medium: { color: "text-amber-400", bg: "bg-amber-400/10", label: "Medium" },
+  high: { color: "text-red-400", bg: "bg-red-400/10", label: "High" },
 };
 
-const statusColors = {
-  todo: "bg-gray-100 text-gray-700",
-  in_progress: "bg-blue-100 text-blue-700",
-  done: "bg-green-100 text-green-700",
-};
-
-const statusLabels = {
-  todo: "To Do",
-  in_progress: "In Progress",
-  done: "Done",
+const statusConfig = {
+  todo: { color: "text-slate-400", bg: "bg-slate-400/10", label: "To Do" },
+  in_progress: {
+    color: "text-blue-400",
+    bg: "bg-blue-400/10",
+    label: "In Progress",
+  },
+  done: { color: "text-emerald-400", bg: "bg-emerald-400/10", label: "Done" },
 };
 
 export default function TaskCard({ task, onUpdate }: TaskCardProps) {
@@ -35,53 +34,68 @@ export default function TaskCard({ task, onUpdate }: TaskCardProps) {
     onUpdate();
   }
 
-  return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-2">
-        <h3 className="font-semibold text-gray-900 text-sm">{task.title}</h3>
-        <button
-          onClick={handleDelete}
-          className="text-gray-400 hover:text-red-500 transition-colors text-xs shrink-0"
-        >
-          ✕
-        </button>
-      </div>
+  const priority = priorityConfig[task.priority];
+  const status = statusConfig[task.status];
 
-      {/* Description */}
-      {task.description && (
-        <p className="text-gray-500 text-xs leading-relaxed">
-          {task.description}
-        </p>
-      )}
+  return (
+    <div className="group relative bg-[var(--card)] border border-[var(--card-border)] rounded-xl p-5 flex flex-col gap-4 hover:border-[var(--primary)] transition-all duration-200 hover:shadow-lg hover:shadow-indigo-500/5">
+      {/* Delete button */}
+      <button
+        onClick={handleDelete}
+        className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-md text-[var(--muted)] hover:text-red-400 hover:bg-red-400/10"
+      >
+        <Trash2 size={14} />
+      </button>
+
+      {/* Title */}
+      <div className="pr-8">
+        <h3
+          className={`font-semibold text-sm leading-snug ${task.status === "done" ? "line-through text-[var(--muted)]" : "text-[var(--foreground)]"}`}
+        >
+          {task.title}
+        </h3>
+        {task.description && (
+          <p className="text-[var(--muted)] text-xs mt-1.5 leading-relaxed line-clamp-2">
+            {task.description}
+          </p>
+        )}
+      </div>
 
       {/* Badges */}
       <div className="flex flex-wrap gap-2">
         <span
-          className={`text-xs px-2 py-1 rounded-full font-medium ${priorityColors[task.priority]}`}
+          className={`text-xs px-2 py-0.5 rounded-full font-medium ${priority.bg} ${priority.color}`}
         >
-          {task.priority}
+          {priority.label}
         </span>
         {task.category && (
           <span
-            className="text-xs px-2 py-1 rounded-full font-medium text-white"
-            style={{ backgroundColor: task.category.color }}
+            className="text-xs px-2 py-0.5 rounded-full font-medium text-white flex items-center gap-1"
+            style={{
+              backgroundColor: task.category.color + "33",
+              color: task.category.color,
+            }}
           >
+            <Tag size={10} />
             {task.category.name}
           </span>
         )}
         {task.dueDate && (
-          <span className="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-700 font-medium">
-            📅 {new Date(task.dueDate).toLocaleDateString()}
+          <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-purple-400/10 text-purple-400 flex items-center gap-1">
+            <Calendar size={10} />
+            {new Date(task.dueDate).toLocaleDateString()}
           </span>
         )}
       </div>
+
+      {/* Divider */}
+      <div className="border-t border-[var(--card-border)]" />
 
       {/* Status selector */}
       <select
         value={task.status}
         onChange={(e) => handleStatusChange(e.target.value as any)}
-        className={`text-xs px-2 py-1 rounded-full font-medium border-0 cursor-pointer ${statusColors[task.status]}`}
+        className={`text-xs px-2 py-1 rounded-md font-medium border-0 cursor-pointer w-fit ${status.bg} ${status.color}`}
       >
         <option value="todo">To Do</option>
         <option value="in_progress">In Progress</option>

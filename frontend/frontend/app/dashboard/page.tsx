@@ -8,6 +8,7 @@ import { getCategories } from "@/lib/categories";
 import type { Task, Category } from "@/lib/types";
 import TaskCard from "@/components/TaskCard";
 import Navbar from "@/components/Navbar";
+import { Plus, ListTodo } from "lucide-react";
 
 export default function DashboardPage() {
   const { isLoaded, isSignedIn } = useAuth();
@@ -20,9 +21,7 @@ export default function DashboardPage() {
   const [filterPriority, setFilterPriority] = useState<string>("all");
 
   useEffect(() => {
-    if (isLoaded && !isSignedIn) {
-      router.push("/sign-in");
-    }
+    if (isLoaded && !isSignedIn) router.push("/sign-in");
   }, [isLoaded, isSignedIn]);
 
   async function fetchData() {
@@ -51,28 +50,76 @@ export default function DashboardPage() {
     return statusMatch && priorityMatch;
   });
 
+  const stats = {
+    total: tasks.length,
+    todo: tasks.filter((t) => t.status === "todo").length,
+    inProgress: tasks.filter((t) => t.status === "in_progress").length,
+    done: tasks.filter((t) => t.status === "done").length,
+  };
+
   if (!isLoaded || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+      <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-6 h-6 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
+          <p className="text-[var(--muted)] text-sm">Loading your tasks...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--background)]">
       <Navbar />
 
-      <main className="max-w-5xl mx-auto px-6 py-8">
-        {/* Top bar */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">My Tasks</h2>
+      <main className="max-w-6xl mx-auto px-6 py-8">
+        {/* Page header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2 className="text-2xl font-bold text-[var(--foreground)]">
+              Dashboard
+            </h2>
+            <p className="text-[var(--muted)] text-sm mt-1">
+              Manage and track your tasks
+            </p>
+          </div>
           <button
             onClick={() => router.push("/tasks/new")}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+            className="flex items-center gap-2 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
           >
-            + New Task
+            <Plus size={16} />
+            New Task
           </button>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+          {[
+            {
+              label: "Total",
+              value: stats.total,
+              color: "text-[var(--foreground)]",
+            },
+            { label: "To Do", value: stats.todo, color: "text-slate-400" },
+            {
+              label: "In Progress",
+              value: stats.inProgress,
+              color: "text-blue-400",
+            },
+            { label: "Done", value: stats.done, color: "text-emerald-400" },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              className="bg-[var(--card)] border border-[var(--card-border)] rounded-xl p-4"
+            >
+              <p className="text-[var(--muted)] text-xs font-medium uppercase tracking-wide">
+                {stat.label}
+              </p>
+              <p className={`text-2xl font-bold mt-1 ${stat.color}`}>
+                {stat.value}
+              </p>
+            </div>
+          ))}
         </div>
 
         {/* Filters */}
@@ -80,7 +127,7 @@ export default function DashboardPage() {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white"
+            className="text-sm border border-[var(--card-border)] rounded-lg px-3 py-2 bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
           >
             <option value="all">All statuses</option>
             <option value="todo">To Do</option>
@@ -91,7 +138,7 @@ export default function DashboardPage() {
           <select
             value={filterPriority}
             onChange={(e) => setFilterPriority(e.target.value)}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white"
+            className="text-sm border border-[var(--card-border)] rounded-lg px-3 py-2 bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
           >
             <option value="all">All priorities</option>
             <option value="low">Low</option>
@@ -102,11 +149,25 @@ export default function DashboardPage() {
 
         {/* Tasks grid */}
         {filteredTasks.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-gray-400 text-lg">No tasks yet!</p>
-            <p className="text-gray-400 text-sm mt-1">
-              Click "+ New Task" to create one
-            </p>
+          <div className="flex flex-col items-center justify-center py-24 gap-4">
+            <div className="p-4 rounded-full bg-[var(--card)] border border-[var(--card-border)]">
+              <ListTodo size={32} className="text-[var(--muted)]" />
+            </div>
+            <div className="text-center">
+              <p className="text-[var(--foreground)] font-medium">
+                No tasks yet
+              </p>
+              <p className="text-[var(--muted)] text-sm mt-1">
+                Click "New Task" to get started
+              </p>
+            </div>
+            <button
+              onClick={() => router.push("/tasks/new")}
+              className="flex items-center gap-2 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors mt-2"
+            >
+              <Plus size={16} />
+              New Task
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
