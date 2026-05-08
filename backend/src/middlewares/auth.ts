@@ -5,6 +5,8 @@ import prisma from '../lib/prisma'
 export async function verifyAuth(request: FastifyRequest, reply: FastifyReply) {
     try {
         const token = request.headers.authorization?.split(' ')[1]
+        // console.log('Token received:', token ? 'YES' : 'NO')
+        // console.log('Token value:', token)
 
         if (!token) {
             return reply.status(401).send({ error: 'Unauthorized - No token provided' })
@@ -16,6 +18,8 @@ export async function verifyAuth(request: FastifyRequest, reply: FastifyReply) {
             first_name?: string
         } | null
 
+        // console.log('Decoded:', decoded)
+
         if (!decoded || !decoded.sub) {
             return reply.status(401).send({ error: 'Unauthorized - Invalid token' })
         }
@@ -26,7 +30,7 @@ export async function verifyAuth(request: FastifyRequest, reply: FastifyReply) {
             update: {},
             create: {
                 clerkId: decoded.sub,
-                email: decoded.email_address ?? 'no-email@placeholder.com',
+                email: decoded.email_address ?? `${decoded.sub}@placeholder.com`,
                 name: decoded.first_name ?? 'User'
             }
         })

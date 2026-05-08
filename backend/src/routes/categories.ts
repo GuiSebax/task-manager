@@ -8,19 +8,19 @@ export async function categoryRoutes(app: FastifyInstance) {
     // GET /categories
     app.get('/', { preHandler: verifyAuth }, async (request, reply) => {
         const categories = await prisma.category.findMany({
-            where: { userId: request.user.clerkId }
+            where: { userId: request.user.dbId }
         })
         return reply.send(categories)
     })
 
-    // POST /categories
     app.post('/', { preHandler: verifyAuth }, async (request, reply) => {
         const body = createCategorySchema.parse(request.body)
 
         const category = await prisma.category.create({
             data: {
-                ...body,
-                userId: request.user.clerkId
+                name: body.name,
+                color: body.color,
+                userId: request.user.dbId,
             }
         })
 
@@ -33,7 +33,7 @@ export async function categoryRoutes(app: FastifyInstance) {
         const body = updateCategorySchema.parse(request.body)
 
         const category = await prisma.category.findFirst({
-            where: { id, userId: request.user.clerkId }
+            where: { id, userId: request.user.dbId }
         })
 
         if (!category) {
@@ -42,7 +42,10 @@ export async function categoryRoutes(app: FastifyInstance) {
 
         const updated = await prisma.category.update({
             where: { id },
-            data: body
+            data: {
+                ...(body.name && { name: body.name }),
+                ...(body.color && { color: body.color }),
+            }
         })
 
         return reply.send(updated)
@@ -53,7 +56,7 @@ export async function categoryRoutes(app: FastifyInstance) {
         const { id } = request.params as { id: string }
 
         const category = await prisma.category.findFirst({
-            where: { id, userId: request.user.clerkId }
+            where: { id, userId: request.user.dbId }
         })
 
         if (!category) {
