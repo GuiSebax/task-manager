@@ -1,9 +1,16 @@
 import 'dotenv/config'
 import Fastify from 'fastify'
+import cors from '@fastify/cors'
 import { taskRoutes } from './src/routes/tasks'
 import { categoryRoutes } from './src/routes/categories'
 
 const app = Fastify({ logger: true })
+
+await app.register(cors, {
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+})
 
 app.get('/health', async () => {
     return { status: 'ok' }
